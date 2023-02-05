@@ -1970,13 +1970,7 @@ obj:
     });
 
     it('custom kubernetes schema should return validation errors', (done) => {
-      const settingsHandler = new SettingsHandler(
-        {} as Connection,
-        languageService,
-        yamlSettings,
-        validationHandler,
-        telemetry
-      );
+      const settingsHandler = new SettingsHandler({} as Connection, languageService, yamlSettings, validationHandler, telemetry);
       const initialSettings = languageSettingsSetup.withKubernetes(true).languageSettings;
       const kubernetesSettings = settingsHandler.configureSchemas(
         'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.26.1-standalone-strict/all.json',
@@ -1989,11 +1983,12 @@ obj:
       const content = `apiVersion: apps/v1\nkind: Deployment\nfoo: bar`;
       const validator = parseSetup(content);
       validator
-      .then(function (result) {
-        assert.equal(result.length, 1);
-        // eslint-disable-next-line
-        assert.equal(result[0].message, `Property foo is not allowed.`);
-      }).then(done, done);
+        .then(function (result) {
+          assert.equal(result.length, 1);
+          // eslint-disable-next-line
+          assert.equal(result[0].message, `Property foo is not allowed.`);
+        })
+        .then(done, done);
     });
   });
 });
