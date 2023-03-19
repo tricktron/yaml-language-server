@@ -10,3 +10,5 @@ coverage
 lib/
 package-lock.json
 eslint-result.sarif
+.direnv
+.envrc
