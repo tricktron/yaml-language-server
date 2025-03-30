@@ -39,14 +39,15 @@ export function getGroupVersionKindFromDocument(
         return undefined;
       }
 
-      const groupVersion = rootJSON['apiVersion'];
+      const groupVersion: string = rootJSON['apiVersion'];
       if (!groupVersion) {
         return undefined;
       }
 
-      const [group, version] = groupVersion.split('/');
-      if (!group || !version) {
-        return undefined;
+      let [group, version] = groupVersion.split('/');
+      if (!version) {
+        version = group;
+        group = ''; // core kubernetes group is empty
       }
 
       const kind = rootJSON['kind'];

@@ -703,8 +703,12 @@ describe('JSON Schema', () => {
   });
 
   describe('Test getGroupVersionKindFromDocument', function () {
-    it('builtin kubernetes resource group should not get resolved', async () => {
-      checkReturnGroupVersionKind('apiVersion: v1\nkind: Pod', true, undefined, 'v1', 'Pod');
+    it('builtin kubernetes core resource group should get resolved', async () => {
+      checkReturnGroupVersionKind('apiVersion: v1\nkind: Pod', false, '', 'v1', 'Pod');
+    });
+
+    it('builtin kubernetes ingress resource group should get resolved', async () => {
+      checkReturnGroupVersionKind('apiVersion: networking.k8s.io/v1\nkind: Ingress', false, 'networking.k8s.io', 'v1', 'Ingress');
     });
 
     it('custom argo application CRD should get resolved', async () => {
