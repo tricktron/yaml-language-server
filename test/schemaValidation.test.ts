@@ -46,6 +46,7 @@ describe('Validation Tests', () => {
       .withSchemaFileMatch({ uri: KUBERNETES_SCHEMA_URL, fileMatch: ['.drone.yml'] })
       .withSchemaFileMatch({ uri: 'https://json.schemastore.org/drone', fileMatch: ['.drone.yml'] })
       .withSchemaFileMatch({ uri: KUBERNETES_SCHEMA_URL, fileMatch: ['test.yml'] })
+      .withSchemaFileMatch({ uri: KUBERNETES_SCHEMA_URL, fileMatch: ['k8s.yml'] })
       .withSchemaFileMatch({
         uri: 'https://raw.githubusercontent.com/composer/composer/master/res/composer-schema.json',
         fileMatch: ['test.yml'],
@@ -1114,9 +1115,10 @@ obj:
   describe('Test with custom kubernetes schemas', function () {
     afterEach(() => {
       // remove Kubernetes setting not to affect next tests
-      languageService.configure(languageSettingsSetup.withKubernetes(false).languageSettings);
+      yamlSettings.autoDetectKubernetesSchema = false;
       yamlSettings.specificValidatorPaths = [];
     });
+
     it('Test that properties that match multiple enums get validated properly', (done) => {
       languageService.configure(languageSettingsSetup.withKubernetes().languageSettings);
       yamlSettings.specificValidatorPaths = ['*.yml', '*.yaml'];
@@ -1241,6 +1243,51 @@ obj:
       expect(openshiftResult.length).to.eq(2);
       expect(openshiftResult[0].message).to.eq('Missing property "spec".');
       expect(openshiftResult[1].message).to.eq('Property baz is not allowed.');
+    });
+
+    it('Core kubernetes schema with and without auto detection should return validation errors', async () => {
+      yamlSettings.specificValidatorPaths = ['*.yml', '*.yaml'];
+      const content = `apiVersion: apps/v1\nkind: Deployment\nfoo: bar`;
+      // use k8s.yml as it is associated with the kubernetes schema
+      const result = await parseSetup(content, 'k8s.yml');
+
+      expect(result.length).to.eq(1);
+      expect(result[0].message).to.eq('Property foo is not allowed.');
+
+      yamlSettings.autoDetectKubernetesSchema = true;
+
+      const result2 = await parseSetup(content, 'k8s.yml');
+
+      expect(result2.length).to.eq(1);
+      expect(result2[0].message).to.eq('Property foo is not allowed.');
+    });
+
+    it('Valid CRD kubernetes schema without auto detection returns validation error', async () => {
+      yamlSettings.specificValidatorPaths = ['*.yml', '*.yaml'];
+      const content = `apiVersion: external-secrets.io/v1beta1\nkind: ExternalSecret\nmetadata:\n  name: test-es`;
+      // use k8s.yml as it is associated with the kubernetes schema
+      const result = await parseSetup(content, 'k8s.yml');
+      expect(result.length).to.eq(1);
+      expect(result[0].message).to.includes(`Value is not accepted. Valid values:`);
+    });
+
+    it('Valid CRD kubernetes schema with auto detection returns no validation error', async () => {
+      yamlSettings.specificValidatorPaths = ['*.yml', '*.yaml'];
+      yamlSettings.autoDetectKubernetesSchema = true;
+      const content = `apiVersion: external-secrets.io/v1beta1\nkind: ExternalSecret\nmetadata:\n  name: test-es`;
+      // use k8s.yml as it is associated with the kubernetes schema
+      const result = await parseSetup(content, 'k8s.yml');
+      expect(result.length).to.eq(0);
+    });
+
+    it('Invalid CRD kubernetes schema with auto detection should return validation error', async () => {
+      yamlSettings.specificValidatorPaths = ['*.yml', '*.yaml'];
+      yamlSettings.autoDetectKubernetesSchema = true;
+      const content = `apiVersion: external-secrets.io/v1beta1\nkind: ExternalSecret\nspec:\n  refreshInterval: 15`;
+      // use k8s.yml as it is associated with the kubernetes schema
+      const result = await parseSetup(content, 'k8s.yml');
+      expect(result.length).to.eq(1);
+      expect(result[0].message).to.eq('Incorrect type. Expected "string".');
     });
   });
 

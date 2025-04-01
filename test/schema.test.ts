@@ -14,7 +14,7 @@ import { LanguageService, SchemaPriority } from '../src';
 import { MarkupContent, Position } from 'vscode-languageserver-types';
 import { LineCounter } from 'yaml';
 import { getSchemaFromModeline } from '../src/languageservice/services/modelineUtil';
-import { getGroupVersionKindFromDocument } from '../src/languageservice/services/crdUtil';
+import { autoDetectKubernetesSchemaFromDocument, getGroupVersionKindFromDocument } from '../src/languageservice/services/crdUtil';
 
 const requestServiceMock = function (uri: string): Promise<string> {
   return Promise.reject<string>(`Resource ${uri} not found.`);
@@ -739,6 +739,47 @@ describe('JSON Schema', () => {
         'v1alpha1',
         'Application'
       );
+    });
+
+    it('Valid Kubernetes CRD returns CRD URL', () => {
+      const yamlDoc = parser.parse(
+        'someOtherVal: test\napiVersion: argoproj.io/v1alpha1\nkind: Application\nmetadata:\n  name: my-app'
+      );
+      const crdURL = autoDetectKubernetesSchemaFromDocument(yamlDoc.documents[0]);
+      assert.strictEqual(
+        crdURL,
+        'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/argoproj.io/application_v1alpha1.json'
+      );
+    });
+
+    it('Valid Kubernetes builtin core resource returns undefined', () => {
+      const yamlDoc = parser.parse('apiVersion: v1\nkind: Service\nmetadata:\n  name: my-app');
+      const crdURL = autoDetectKubernetesSchemaFromDocument(yamlDoc.documents[0]);
+      assert.strictEqual(crdURL, undefined);
+    });
+
+    it('Valid Kubernetes builtin apps group resource returns undefined', () => {
+      const yamlDoc = parser.parse('someOtherVal: test\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-app');
+      const crdURL = autoDetectKubernetesSchemaFromDocument(yamlDoc.documents[0]);
+      assert.strictEqual(crdURL, undefined);
+    });
+
+    it('Invalid Kubernetes CRD with missing api version returns undefined', () => {
+      const missingApiVersionYaml = parser.parse('someOtherVal: test\nkind: Application\nmetadata:\n  name: my-app');
+      const crdURL = autoDetectKubernetesSchemaFromDocument(missingApiVersionYaml.documents[0]);
+      assert.strictEqual(crdURL, undefined);
+    });
+
+    it('Invalid Kubernetes CRD with missing kind returns undefined', () => {
+      const missingKindYaml = parser.parse('someOtherVal: test\napiVersion: argoproj.io/v1alpha1\nmetadata:\n  name: my-app');
+      const crdURL = autoDetectKubernetesSchemaFromDocument(missingKindYaml.documents[0]);
+      assert.strictEqual(crdURL, undefined);
+    });
+
+    it('Invalid Kubernetes CRD returns undefined', () => {
+      const yamlDoc = parser.parse('someOtherVal: test\napiVersion: argoproj.io/v1alpha1\nmetadata:\n  name: my-app');
+      const crdURL = autoDetectKubernetesSchemaFromDocument(yamlDoc.documents[0]);
+      assert.strictEqual(crdURL, undefined);
     });
 
     function checkReturnGroupVersionKind(
