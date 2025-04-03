@@ -55,6 +55,8 @@ The following settings are supported:
 - `yaml.style.flowMapping` : Forbids flow style mappings if set to `forbid` 
 - `yaml.style.flowSequence` : Forbids flow style sequences if set to `forbid`
 - `yaml.keyOrdering` : Enforces alphabetical ordering of keys in mappings when set to `true`. Default is `false`
+- `yaml.kubernetesSchemaURL`: The Kubernetes schema url. Defaults to the currently hardcoded Kubernetes schema version. See (####custom-kubernetes-schemas) for more details on how to overwrite with a custom Kubernetes schema version.
+
 
 ##### Adding custom tags
 
@@ -200,6 +202,17 @@ e.g.
     "kubernetes": ["/myYamlFile.yaml"]
 }
 ```
+
+#### Custom Kubernetes schemas
+
+You can overwrite the hardcoded Kubernetes schema with a custom version with
+the following setting:
+
+```yaml
+"yaml.kubernetesSchemaURL": "https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.32.1-standalone-strict/all.json"
+```
+
+See the [kubernetes-json-schema](https://github.com/yannh/kubernetes-json-schema) repository for all available versions.
 
 #### Multi root schema association:
 
