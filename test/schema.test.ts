@@ -14,7 +14,7 @@ import { LanguageService, SchemaPriority } from '../src';
 import { MarkupContent, Position } from 'vscode-languageserver-types';
 import { LineCounter } from 'yaml';
 import { getSchemaFromModeline } from '../src/languageservice/services/modelineUtil';
-import { autoDetectCRDSchemaFromDocument, getGroupVersionKindFromDocument } from '../src/languageservice/services/crdUtil';
+import { autoDetectCRDSchemaFromDocument, getGroupVersionKindFromDocument } from '../src/languageservice/utils/crdUtil';
 
 const requestServiceMock = function (uri: string): Promise<string> {
   return Promise.reject<string>(`Resource ${uri} not found.`);

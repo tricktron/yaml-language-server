@@ -30,7 +30,7 @@ import { SchemaVersions } from '../yamlTypes';
 
 import Ajv, { DefinedError } from 'ajv';
 import { getSchemaTitle } from '../utils/schemaUtils';
-import { autoDetectCRDSchemaFromDocument } from './crdUtil';
+import { autoDetectCRDSchemaFromDocument } from '../utils/crdUtil';
 
 const ajv = new Ajv();
 
