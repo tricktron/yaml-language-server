@@ -8,7 +8,7 @@ import { LanguageService, SchemaConfiguration } from '../../languageservice/yaml
 import {
   CustomSchemaRequest,
   DynamicCustomSchemaRequestRegistration,
-  KubernetesSchemaURLsNotification,
+  KubernetesSchemaURLNotification,
   SchemaAssociationNotification,
   SchemaSelectionRequests,
   VSCodeContentRequestRegistration,
@@ -37,13 +37,13 @@ export class NotificationHandlers {
       this.schemaAssociationNotificationHandler(associations)
     );
     this.connection.onNotification(DynamicCustomSchemaRequestRegistration.type, () => this.dynamicSchemaRequestHandler());
-    this.connection.onNotification(KubernetesSchemaURLsNotification.type, (url) => this.kubernetesSchemaURLsNotification(url));
+    this.connection.onNotification(KubernetesSchemaURLNotification.type, (url) => this.kubernetesSchemaURLsNotification(url));
     this.connection.onNotification(VSCodeContentRequestRegistration.type, () => this.vscodeContentRequestHandler());
     this.connection.onNotification(SchemaSelectionRequests.type, () => this.schemaSelectionRequestHandler());
   }
 
-  private kubernetesSchemaURLsNotification(urls: string[]): void {
-    this.yamlSettings.kubernetesSchemaUrls = urls;
+  private kubernetesSchemaURLsNotification(url: string): void {
+    this.yamlSettings.kubernetesSchemaUrl = url;
   }
 
   /**

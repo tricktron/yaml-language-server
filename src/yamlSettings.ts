@@ -83,7 +83,7 @@ export class SettingsState {
   schemaStoreUrl = JSON_SCHEMASTORE_URL;
   crdStoreEnabled = true;
   crdStoreUrl = CRD_STORE_URL;
-  kubernetesSchemaUrls = [KUBERNETES_SCHEMA_URL];
+  kubernetesSchemaUrl = KUBERNETES_SCHEMA_URL;
   indentation: string | undefined = undefined;
   disableAdditionalProperties = false;
   disableDefaultProperties = false;

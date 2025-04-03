@@ -330,7 +330,7 @@ export class SettingsHandler {
    * @param languageSettings current server settings
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public configureSchemas(
+  private configureSchemas(
     uri: string,
     fileMatch: string[],
     schema: unknown,
@@ -345,7 +345,7 @@ export class SettingsHandler {
       languageSettings.schemas.push({ uri, fileMatch: fileMatch, schema: schema, priority: priorityLevel });
     }
 
-    if (this.yamlSettings.kubernetesSchemaUrls.includes(uri)) {
+    if (this.yamlSettings.kubernetesSchemaUrl === uri) {
       if (fileMatch.constructor === Array) {
         fileMatch.forEach((url) => {
           this.yamlSettings.specificValidatorPaths.push(url);

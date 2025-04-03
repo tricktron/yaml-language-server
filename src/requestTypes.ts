@@ -45,8 +45,8 @@ export namespace DynamicCustomSchemaRequestRegistration {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace KubernetesSchemaURLsNotification {
-  export const type: NotificationType<string[]> = new NotificationType('yaml/kubernetesSchemaURLs');
+export namespace KubernetesSchemaURLNotification {
+  export const type: NotificationType<string> = new NotificationType('yaml/kubernetesSchemaURL');
 }
 
 export namespace VSCodeContentRequestRegistration {
