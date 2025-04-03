@@ -6,7 +6,7 @@ import * as url from 'url';
 import * as path from 'path';
 import { XHRResponse, xhr } from 'request-light';
 import { MODIFICATION_ACTIONS, SchemaDeletions } from '../src/languageservice/services/yamlSchemaService';
-import { KUBERNETES_SCHEMA_URL } from '../src/languageservice/utils/schemaUrls';
+import { CRD_STORE_URL, KUBERNETES_SCHEMA_URL } from '../src/languageservice/utils/schemaUrls';
 import { expect } from 'chai';
 import { ServiceSetup } from './utils/serviceSetup';
 import { setupLanguageService, setupTextDocument, TEST_URI } from './utils/testHelper';
@@ -14,7 +14,7 @@ import { LanguageService, SchemaPriority } from '../src';
 import { MarkupContent, Position } from 'vscode-languageserver-types';
 import { LineCounter } from 'yaml';
 import { getSchemaFromModeline } from '../src/languageservice/services/modelineUtil';
-import { autoDetectKubernetesSchemaFromDocument, getGroupVersionKindFromDocument } from '../src/languageservice/services/crdUtil';
+import { autoDetectCRDSchemaFromDocument, getGroupVersionKindFromDocument } from '../src/languageservice/services/crdUtil';
 
 const requestServiceMock = function (uri: string): Promise<string> {
   return Promise.reject<string>(`Resource ${uri} not found.`);
@@ -745,7 +745,7 @@ describe('JSON Schema', () => {
       const yamlDoc = parser.parse(
         'someOtherVal: test\napiVersion: argoproj.io/v1alpha1\nkind: Application\nmetadata:\n  name: my-app'
       );
-      const crdURL = autoDetectKubernetesSchemaFromDocument(yamlDoc.documents[0]);
+      const crdURL = autoDetectCRDSchemaFromDocument(yamlDoc.documents[0], CRD_STORE_URL);
       assert.strictEqual(
         crdURL,
         'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/argoproj.io/application_v1alpha1.json'
@@ -754,31 +754,31 @@ describe('JSON Schema', () => {
 
     it('Valid Kubernetes builtin core resource returns undefined', () => {
       const yamlDoc = parser.parse('apiVersion: v1\nkind: Service\nmetadata:\n  name: my-app');
-      const crdURL = autoDetectKubernetesSchemaFromDocument(yamlDoc.documents[0]);
+      const crdURL = autoDetectCRDSchemaFromDocument(yamlDoc.documents[0], CRD_STORE_URL);
       assert.strictEqual(crdURL, undefined);
     });
 
     it('Valid Kubernetes builtin apps group resource returns undefined', () => {
       const yamlDoc = parser.parse('someOtherVal: test\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-app');
-      const crdURL = autoDetectKubernetesSchemaFromDocument(yamlDoc.documents[0]);
+      const crdURL = autoDetectCRDSchemaFromDocument(yamlDoc.documents[0], CRD_STORE_URL);
       assert.strictEqual(crdURL, undefined);
     });
 
     it('Invalid Kubernetes CRD with missing api version returns undefined', () => {
       const missingApiVersionYaml = parser.parse('someOtherVal: test\nkind: Application\nmetadata:\n  name: my-app');
-      const crdURL = autoDetectKubernetesSchemaFromDocument(missingApiVersionYaml.documents[0]);
+      const crdURL = autoDetectCRDSchemaFromDocument(missingApiVersionYaml.documents[0], CRD_STORE_URL);
       assert.strictEqual(crdURL, undefined);
     });
 
     it('Invalid Kubernetes CRD with missing kind returns undefined', () => {
       const missingKindYaml = parser.parse('someOtherVal: test\napiVersion: argoproj.io/v1alpha1\nmetadata:\n  name: my-app');
-      const crdURL = autoDetectKubernetesSchemaFromDocument(missingKindYaml.documents[0]);
+      const crdURL = autoDetectCRDSchemaFromDocument(missingKindYaml.documents[0], CRD_STORE_URL);
       assert.strictEqual(crdURL, undefined);
     });
 
     it('Invalid Kubernetes CRD returns undefined', () => {
       const yamlDoc = parser.parse('someOtherVal: test\napiVersion: argoproj.io/v1alpha1\nmetadata:\n  name: my-app');
-      const crdURL = autoDetectKubernetesSchemaFromDocument(yamlDoc.documents[0]);
+      const crdURL = autoDetectCRDSchemaFromDocument(yamlDoc.documents[0], CRD_STORE_URL);
       assert.strictEqual(crdURL, undefined);
     });
 

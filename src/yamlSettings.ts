@@ -4,7 +4,7 @@ import { ISchemaAssociations } from './requestTypes';
 import { URI } from 'vscode-uri';
 import { JSONSchema } from './languageservice/jsonSchema';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { JSON_SCHEMASTORE_URL, KUBERNETES_SCHEMA_URL } from './languageservice/utils/schemaUrls';
+import { CRD_STORE_URL, JSON_SCHEMASTORE_URL, KUBERNETES_SCHEMA_URL } from './languageservice/utils/schemaUrls';
 import { YamlVersion } from './languageservice/parser/yamlParser07';
 
 // Client settings interface to grab settings relevant for the language server
@@ -20,6 +20,10 @@ export interface Settings {
       url: string;
       enable: boolean;
     };
+    crdStore: {
+      url: string;
+      enable: boolean;
+    };
     disableDefaultProperties: boolean;
     disableAdditionalProperties: boolean;
     suggest: {
@@ -32,7 +36,6 @@ export interface Settings {
     keyOrdering: boolean;
     maxItemsComputed: number;
     yamlVersion: YamlVersion;
-    autoDetectKubernetesSchema: boolean;
   };
   http: {
     proxy: string;
@@ -78,6 +81,8 @@ export class SettingsState {
   customTags = [];
   schemaStoreEnabled = true;
   schemaStoreUrl = JSON_SCHEMASTORE_URL;
+  crdStoreEnabled = true;
+  crdStoreUrl = CRD_STORE_URL;
   kubernetesSchemaUrls = [KUBERNETES_SCHEMA_URL];
   indentation: string | undefined = undefined;
   disableAdditionalProperties = false;
@@ -91,7 +96,6 @@ export class SettingsState {
   };
   keyOrdering = false;
   maxItemsComputed = 5000;
-  autoDetectKubernetesSchema = false;
 
   // File validation helpers
   pendingValidationRequests: { [uri: string]: NodeJS.Timer } = {};

@@ -1,7 +1,6 @@
 import { SingleYAMLDocument } from '../parser/yamlParser07';
 import { JSONDocument } from '../parser/jsonParser07';
 
-const CRD_URI = 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main';
 const BUILTIN_KUBERNETES_API_GROUPS = [
   '',
   'admissionregistration.k8s.io',
@@ -32,7 +31,7 @@ const BUILTIN_KUBERNETES_API_GROUPS = [
  * Public for testing purpose, not part of the API.
  * @param doc
  */
-export function autoDetectKubernetesSchemaFromDocument(doc: SingleYAMLDocument | JSONDocument): string | undefined {
+export function autoDetectCRDSchemaFromDocument(doc: SingleYAMLDocument | JSONDocument, crdStoreURL: string): string | undefined {
   const res = getGroupVersionKindFromDocument(doc);
   if (!res) {
     return undefined;
@@ -47,7 +46,7 @@ export function autoDetectKubernetesSchemaFromDocument(doc: SingleYAMLDocument |
     return undefined;
   }
 
-  const schemaURL = `${CRD_URI}/${group.toLowerCase()}/${kind.toLowerCase()}_${version.toLowerCase()}.json`;
+  const schemaURL = `${crdStoreURL}/${group.toLowerCase()}/${kind.toLowerCase()}_${version.toLowerCase()}.json`;
   return schemaURL;
 }
 

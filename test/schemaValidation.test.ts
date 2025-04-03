@@ -1115,8 +1115,8 @@ obj:
   describe('Test with custom kubernetes schemas', function () {
     afterEach(() => {
       // remove Kubernetes setting not to affect next tests
-      yamlSettings.autoDetectKubernetesSchema = false;
       yamlSettings.specificValidatorPaths = [];
+      yamlSettings.crdStoreEnabled = true;
     });
 
     it('Test that properties that match multiple enums get validated properly', (done) => {
@@ -1187,8 +1187,9 @@ obj:
 
     it('single openshift schema version should return validation errors', async () => {
       const customOpenshiftSchemaVersion =
-        'https://raw.githubusercontent.com/tricktron/CRDs-catalog/f-openshift-v4.11/openshift.io/v4.11/all.json';
+        'https://raw.githubusercontent.com/tricktron/CRDs-catalog/refs/heads/f-openshift-v4.11/openshift/v4.11-strict/all.json';
       yamlSettings.kubernetesSchemaUrls = [customOpenshiftSchemaVersion];
+      yamlSettings.crdStoreEnabled = false;
       const settingsHandler = new SettingsHandler({} as Connection, languageService, yamlSettings, validationHandler, telemetry);
       const initialSettings = languageSettingsSetup.withKubernetes(true).languageSettings;
       const kubernetesSettings = settingsHandler.configureSchemas(
@@ -1210,8 +1211,9 @@ obj:
       const customKubernetesSchemaVersion =
         'https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.26.1-standalone-strict/all.json';
       const customOpenshiftSchemaVersion =
-        'https://raw.githubusercontent.com/tricktron/CRDs-catalog/f-openshift-v4.11/openshift.io/v4.11/all.json';
+        'https://raw.githubusercontent.com/tricktron/CRDs-catalog/refs/heads/f-openshift-v4.11/openshift/v4.11-strict/all.json';
       yamlSettings.kubernetesSchemaUrls = [customKubernetesSchemaVersion, customOpenshiftSchemaVersion];
+      yamlSettings.crdStoreEnabled = false;
       const settingsHandler = new SettingsHandler({} as Connection, languageService, yamlSettings, validationHandler, telemetry);
       const initialSettings = languageSettingsSetup.withKubernetes(true).languageSettings;
       const kubernetesSettings = settingsHandler.configureSchemas(
@@ -1239,13 +1241,12 @@ obj:
       expect(kubernetesResult[0].message).to.eq('Property foo is not allowed.');
 
       const openshiftResult = await parseSetup(openshift, 'invalid-oc.yml');
-
       expect(openshiftResult.length).to.eq(2);
       expect(openshiftResult[0].message).to.eq('Missing property "spec".');
       expect(openshiftResult[1].message).to.eq('Property baz is not allowed.');
     });
 
-    it('Core kubernetes schema with and without auto detection should return validation errors', async () => {
+    it('Core kubernetes schema with and without crd store should return validation errors', async () => {
       yamlSettings.specificValidatorPaths = ['*.yml', '*.yaml'];
       const content = `apiVersion: apps/v1\nkind: Deployment\nfoo: bar`;
       // use k8s.yml as it is associated with the kubernetes schema
@@ -1254,7 +1255,7 @@ obj:
       expect(result.length).to.eq(1);
       expect(result[0].message).to.eq('Property foo is not allowed.');
 
-      yamlSettings.autoDetectKubernetesSchema = true;
+      yamlSettings.schemaStoreEnabled = false;
 
       const result2 = await parseSetup(content, 'k8s.yml');
 
@@ -1262,8 +1263,9 @@ obj:
       expect(result2[0].message).to.eq('Property foo is not allowed.');
     });
 
-    it('Valid CRD kubernetes schema without auto detection returns validation error', async () => {
+    it('Valid CRD kubernetes schema without crd store returns validation error', async () => {
       yamlSettings.specificValidatorPaths = ['*.yml', '*.yaml'];
+      yamlSettings.crdStoreEnabled = false;
       const content = `apiVersion: external-secrets.io/v1beta1\nkind: ExternalSecret\nmetadata:\n  name: test-es`;
       // use k8s.yml as it is associated with the kubernetes schema
       const result = await parseSetup(content, 'k8s.yml');
@@ -1271,18 +1273,16 @@ obj:
       expect(result[0].message).to.includes(`Value is not accepted. Valid values:`);
     });
 
-    it('Valid CRD kubernetes schema with auto detection returns no validation error', async () => {
+    it('Valid CRD kubernetes schema with crd store returns no validation error', async () => {
       yamlSettings.specificValidatorPaths = ['*.yml', '*.yaml'];
-      yamlSettings.autoDetectKubernetesSchema = true;
       const content = `apiVersion: external-secrets.io/v1beta1\nkind: ExternalSecret\nmetadata:\n  name: test-es`;
       // use k8s.yml as it is associated with the kubernetes schema
       const result = await parseSetup(content, 'k8s.yml');
       expect(result.length).to.eq(0);
     });
 
-    it('Invalid CRD kubernetes schema with auto detection should return validation error', async () => {
+    it('Invalid CRD kubernetes schema with crd store should return validation error', async () => {
       yamlSettings.specificValidatorPaths = ['*.yml', '*.yaml'];
-      yamlSettings.autoDetectKubernetesSchema = true;
       const content = `apiVersion: external-secrets.io/v1beta1\nkind: ExternalSecret\nspec:\n  refreshInterval: 15`;
       // use k8s.yml as it is associated with the kubernetes schema
       const result = await parseSetup(content, 'k8s.yml');

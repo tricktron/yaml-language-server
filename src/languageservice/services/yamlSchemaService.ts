@@ -30,7 +30,7 @@ import { SchemaVersions } from '../yamlTypes';
 
 import Ajv, { DefinedError } from 'ajv';
 import { getSchemaTitle } from '../utils/schemaUtils';
-import { autoDetectKubernetesSchemaFromDocument } from './crdUtil';
+import { autoDetectCRDSchemaFromDocument } from './crdUtil';
 
 const ajv = new Ajv();
 
@@ -422,10 +422,10 @@ export class YAMLSchemaService extends JSONSchemaService {
       return resolveSchemaForResource([modelineSchema]);
     }
 
-    if (this.yamlSettings && this.yamlSettings.autoDetectKubernetesSchema) {
-      const kubeSchema = autoDetectKubernetesSchemaFromDocument(doc);
-      if (kubeSchema) {
-        return resolveSchemaForResource([kubeSchema]);
+    if (this.yamlSettings && this.yamlSettings.crdStoreEnabled) {
+      const crdSchema = autoDetectCRDSchemaFromDocument(doc, this.yamlSettings.crdStoreUrl);
+      if (crdSchema) {
+        return resolveSchemaForResource([crdSchema]);
       }
     }
 
